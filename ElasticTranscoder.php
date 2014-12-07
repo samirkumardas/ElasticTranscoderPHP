@@ -71,15 +71,23 @@ class AWS_ET {
         $requestBody['Outputs'][$i]['SegmentDuration'] = $outputs[$i]['SegmentDuration'];
       }
     }
+	
+	$requestBody['Playlists'] = array();
+	
     if (!empty($playlists)) {
-      $requestBody['Playlists'] = array(
-          'Format' => 'HLSv3',
-          'Name' => $playlists['Name']
-      );
-      if (array_key_exists('OutputKeys', $playlists)) {
-        $requestBody['Playlists']['OutputKeys'] = $playlists['OutputKeys'];
-      }
+	  $num = sizeof($playlists);	
+	  for ($i=0; $i<$num; $i++) {	
+		  $requestBody['Playlists'][$i] = array(
+			  'Format' => 'HLSv3',
+			  'Name' => $playlists[$i]['Name']
+		  );
+		  
+		  if (array_key_exists('OutputKeys', $playlists[$i])) {
+			$requestBody['Playlists'][$i]['OutputKeys'] = $playlists[$i]['OutputKeys'];
+		  }
+	  }
     }
+	
     $requestBody['PipelineId'] = $pipelineId;
     $requestBody = json_encode($requestBody);
     self::setRequestBody($requestBody);
@@ -551,7 +559,7 @@ class AWS_ET {
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_CUSTOMREQUEST, self::$HttpRequestMethod);
     $url = 'https://'.$endpoint . self::$Uri;
-
+	
     if (self::$HttpRequestMethod == 'POST' || self::$HttpRequestMethod == 'PUT') {
       self::setHeader('Content-Type', 'application/json');
       self::setHeader('Content-Length', strlen(self::$RequestBody));
@@ -586,6 +594,8 @@ class AWS_ET {
 
     if (in_array(self::$ResponseStatus, array(200, 201, 202)))
       return $response;
+	  
+	
 
     // Apparently "Message" is not always capitalized
     if (isset($response['message']))
